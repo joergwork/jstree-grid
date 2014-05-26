@@ -1,3 +1,6 @@
+/**
+ * Created by JBoenisch on 26.05.14.
+ */
 /*
  * http://github.com/deitch/jstree-grid
  *
@@ -9,8 +12,7 @@
  * Works only with jstree "v3.0.0-beta5" and higher
  *
  * $Date: 2014-04-18 $
- * $Revision:  3.1.0-beta2 - JB1$
- * changed by joergwork on 2014-05-26.
+ * $Revision:  3.1.0-beta2 $
  */
 
 /*jslint nomen:true */
@@ -20,7 +22,8 @@
  *
  */
 
-var debug = false;
+var debug = true;
+
 (function (factory) {
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
@@ -30,13 +33,18 @@ var debug = false;
         factory(jQuery);
     }
 }(function ($) {
-	var renderAWidth, renderATitle, getIndent, htmlstripre, findLastClosedNode, BLANKRE = /^\s*$/g,
-	SPECIAL_TITLE = "_DATA_", LEVELINDENT = 24, bound = false, styled = false, GRIDCELLID_PREFIX = "jsgrid_",GRIDCELLID_POSTFIX = "_col";
+	var renderAWidth, //unused //renderATitle,
+	    //unused //getIndent,
+	    htmlstripre, findLastClosedNode, BLANKRE = /^\s*$/g,
+	    //unused //SPECIAL_TITLE = "_DATA_",
+        //unused // LEVELINDENT = 24,
+        bound = false, styled = false, GRIDCELLID_PREFIX = "jsgrid_",GRIDCELLID_POSTFIX = "_col";
 
 	/*jslint regexp:true */
 	htmlstripre = /<\/?[^>]+>/gi;
 	/*jslint regexp:false */
 
+	/*unused
 	getIndent = function(node,tree) {
 		var div, i, li, width;
 
@@ -73,6 +81,7 @@ var debug = false;
 		return(width);
 
 	};
+	*/
 
 	findLastClosedNode = function (tree,id) {
 		// first get our node
@@ -87,16 +96,17 @@ var debug = false;
 	};
 
 	renderAWidth = function(node,tree) {
-		var depth, width,
+		//unused // var depth, width,
 		fullWidth = parseInt(tree.settings.grid.columns[0].width,10) + parseInt(tree._gridSettings.treeWidthDiff,10);
 		// need to use a selector in jquery 1.4.4+
-		depth = tree.get_node(node).parents.length;
-		width = fullWidth - depth*getIndent(node,tree);
+		//unused //depth = tree.get_node(node).parents.length;
+		// unused //width = fullWidth - depth*getIndent(node,tree);
 		// the following line is no longer needed, since we are doing this inside a <td>
 		//a.css({"vertical-align": "top", "overflow":"hidden"});
 		return(fullWidth);
 	};
-	renderATitle = function(node,t,tree) {
+    /* unused
+    renderATitle = function(node,t,tree) {
 		var a = node.get(0).tagName.toLowerCase() === "a" ? node : node.children("a"), title, col = tree.settings.grid.columns[0];
 		// get the title
 		title = "";
@@ -113,6 +123,7 @@ var debug = false;
 			a.attr("title",title);
 		}
 	};
+	*/
 
 	$.jstree.defaults.grid = {
 		width: 25
@@ -185,62 +196,71 @@ var debug = false;
 			parent.bind.call(this);
 			this._initialize();
 			this.element.on("redraw.jstree", $.proxy(function (e, data) {
-					var target = this.get_node(data.nodes || "#",true);
-					//this._prepare_grid(target);
-				}, this))
-            .on("model.jstree", $.proxy(function (e, nodes, parent) {
-                    debug && console.log('jstreegrid got event: ', e.type);
+                    // var target = this.get_node(data.nodes || "#",true);
+                    //this._prepare_grid(target);
+                }, this))
+                .on("model.jstree", $.proxy(function (e, nodes, parent) {
+                    debug && console.log('jstree-grid got Event: ', e.type);
                     this._prepare_grid(nodes, parent);
                 }, this))
-			.on("create_node.jstree clean_node.jstree change_node.jstree", $.proxy(function (e, data) {
-				var target = this.get_node(data || "#",true);
-				// this._prepare_grid(target);
-			}, this))
-            .on("delete_node.jstree",$.proxy(function (e,data) {
-			}, this))
-			.on("close_node.jstree",$.proxy(function (e,data) {
-				this._hide_grid(data);
-			}, this))
-			.on("open_node.jstree",$.proxy(function (e,data) {
-			}, this))
-			.on("load_node.jstree",$.proxy(function (e,data) {
-			}, this))
-			.on("loaded.jstree", $.proxy(function (e) {
-				this._prepare_headers();
-				this.element.trigger("loaded_grid.jstree");
-				}, this))
-			.on("ready.jstree",$.proxy(function (e,data) {
-				// find the line-height of the first known node
-				var lh = this.element.find("li a:first").css("line-height");
-				$('<style type="text/css">td.jstree-grid-cell {line-height: '+lh+'}</style>').appendTo("head");
-
-				// add container classes to the wrapper
-				this.gridWrapper.addClass(this.element.attr("class"));
-
-			},this))
-			.on("move_node.jstree",$.proxy(function(e,data){
-				var node = data.new_instance.element;
-				renderAWidth(node,this);
-				// check all the children, because we could drag a tree over
-				node.find("li > a").each($.proxy(function(i,elm){
-					renderAWidth($(elm),this);
-				},this));
-
-			},this))
-			.on("hover_node.jstree",$.proxy(function(node,selected,event){
-				var id = selected.node.id;
-				this.dataRow.find("."+GRIDCELLID_PREFIX+id+GRIDCELLID_POSTFIX).addClass("jstree-hovered");
-			},this))
-			.on("dehover_node.jstree",$.proxy(function(node,selected,event){
-				var id = selected.node.id;
-				this.dataRow.find("."+GRIDCELLID_PREFIX+id+GRIDCELLID_POSTFIX).removeClass("jstree-hovered");
-			},this))
-			.on("select_node.jstree",$.proxy(function(node,selected,event){
-				this.get_node(selected.node.id,true).children("div.jstree-grid-cell").addClass("jstree-clicked");
-			},this))
-			.on("deselect_node.jstree",$.proxy(function(node,selected,event){
-				this.get_node(selected.node.id,true).children("div.jstree-grid-cell").removeClass("jstree-clicked");
-			},this));
+                .on("create_node.jstree clean_node.jstree change_node.jstree", $.proxy(function (e, data) {
+                    debug && console.log('jstree-grid got Event: ', e.type);
+                    // var target = this.get_node(data || "#",true);
+                    // this._prepare_grid(target);
+                }, this))
+                .on("delete_node.jstree",$.proxy(function (e,data) {
+                    debug && console.log('jstree-grid got Event: ', e.type);
+                }, this))
+                .on("close_node.jstree",$.proxy(function (e,data) {
+                    debug && console.log('jstree-grid got Event: ', e.type);
+                    this._hide_grid(data);
+                }, this))
+                .on("open_node.jstree",$.proxy(function (e,data) {
+                    debug && console.log('jstree-grid got Event: ', e.type);
+                }, this))
+                .on("load_node.jstree",$.proxy(function (e,data) {
+                    debug && console.log('jstree-grid got Event: ', e.type);
+                }, this))
+                .on("loaded.jstree", $.proxy(function (e) {
+                    debug && console.log('jstree-grid got Event: ', e.type);
+                    this._prepare_headers();
+                    this.element.trigger("loaded_grid.jstree");
+                }, this))
+                .on("ready.jstree",$.proxy(function (e,data) {
+                    debug && console.log('jstree-grid got Event: ', e.type);
+                    // find the line-height of the first known node
+                    var lh = this.element.find("li a:first").css("line-height");
+                    $('<style type="text/css">td.jstree-grid-cell {line-height: '+lh+'}</style>').appendTo("head");
+                    // add container classes to the wrapper
+                    this.gridWrapper.addClass(this.element.attr("class"));
+                },this))
+                .on("move_node.jstree",$.proxy(function(e,data){
+                    debug && console.log('jstree-grid got Event: ', e.type);
+                    var node = data.new_instance.element;
+                    renderAWidth(node,this);
+                    // check all the children, because we could drag a tree over
+                    node.find("li > a").each($.proxy(function(i,elm){
+                        renderAWidth($(elm),this);
+                    },this));
+                },this))
+                .on("hover_node.jstree",$.proxy(function(node,selected,event){
+                    debug && console.log('jstree-grid got Event: ', e.type);
+                    var id = selected.node.id;
+                    this.dataRow.find("."+GRIDCELLID_PREFIX+id+GRIDCELLID_POSTFIX).addClass("jstree-hovered");
+                },this))
+                .on("dehover_node.jstree",$.proxy(function(node,selected,event){
+                    debug && console.log('jstree-grid got Event: ', e.type);
+                    var id = selected.node.id;
+                    this.dataRow.find("."+GRIDCELLID_PREFIX+id+GRIDCELLID_POSTFIX).removeClass("jstree-hovered");
+                },this))
+                .on("select_node.jstree",$.proxy(function(node,selected,event){
+                    debug && console.log('jstree-grid got Event: ', e.type);
+                    this.get_node(selected.node.id,true).children("div.jstree-grid-cell").addClass("jstree-clicked");
+                },this))
+                .on("deselect_node.jstree",$.proxy(function(node,selected,event){
+                    debug && console.log('jstree-grid got Event: ', e.type);
+                    this.get_node(selected.node.id,true).children("div.jstree-grid-cell").removeClass("jstree-clicked");
+                },this));
 			if (this._gridSettings.isThemeroller) {
 				this.element
 					.on("select_node.jstree",$.proxy(function(e,data){
@@ -308,7 +328,7 @@ var debug = false;
 			last.addClass((tr?"ui-widget-header ":"")+"jstree-grid-header jstree-grid-header-last jstree-grid-header-"+classAdd);
 			// if there is no width given for the last column, do it via automatic
 			if (cols[cols.length-1].width === undefined) {
-				totalWidth -= width;
+				//unused //totalWidth -= width;
 				last.css({width:""}).addClass("jstree-grid-width-auto").next(".jstree-grid-separator").remove();
 			}
 			if (hasHeaders) {
@@ -342,14 +362,17 @@ var debug = false;
 						if (isClickedSep) {
 							newMouseX = e.clientX;
 							var diff = newMouseX - oldMouseX,
-							oldPrevHeaderInner, oldNextHeaderInner, oldPrevHeaderWidth, oldNextHeaderWidth, oldNextHeaderMarginLeft,
+							oldPrevHeaderInner, oldNextHeaderInner,
+                                //unused // oldPrevHeaderWidth,
+                                //unused //oldNextHeaderWidth,
+                            oldNextHeaderMarginLeft,
 							newPrevHeaderWidth, newNextHeaderWidth, newNextHeaderMarginLeft;
 
 							if (diff !== 0){
 								oldPrevHeaderInner = toResize.prevHeader.width();
 								oldNextHeaderInner = toResize.nextHeader.width();
-								oldPrevHeaderWidth = parseFloat(toResize.prevHeader.css("width"));
-								oldNextHeaderWidth = parseFloat(toResize.nextHeader.css("width"));
+								//unused //oldPrevHeaderWidth = parseFloat(toResize.prevHeader.css("width"));
+								//unused //oldNextHeaderWidth = parseFloat(toResize.nextHeader.css("width"));
 								oldNextHeaderMarginLeft = parseFloat(toResize.prevHeader.css("margin-left"));
 
 								// make sure that diff cannot be beyond the left/right limits
@@ -373,7 +396,7 @@ var debug = false;
 					});
 				header.on("selectstart", ".jstree-grid-resizable-separator", function () { return false; })
 					.on("mousedown", ".jstree-grid-resizable-separator", function (e) {
-						var headerWrapper;
+						//unused // var headerWrapper;
 						clickedSep = $(this);
 						isClickedSep = true;
 						currentTree = clickedSep.closest(".jstree-grid-wrapper").find(".jstree");
@@ -382,7 +405,7 @@ var debug = false;
 						toResize.prevHeader = clickedSep.closest("th");
 						toResize.nextHeader = toResize.prevHeader.next("th");
 						// the max rightmost position we will allow is the right-most of the wrapper minus a buffer (10)
-						headerWrapper = clickedSep.parent();
+						//unused //headerWrapper = clickedSep.parent();
 						return false;
 					});
 			}
@@ -412,8 +435,7 @@ var debug = false;
 		};
 
         this.redraw_cells = function (node) {
-            var element = this.get_node(node),
-                columns = this._gridSettings.columns,
+            var columns = this._gridSettings.columns,
                 elementIdString;
 
             for (var idx= 1; idx < columns.length; idx++) {
@@ -422,7 +444,7 @@ var debug = false;
             }
         };
 
-        this._prepare_grid = function (nodes, parent) {
+        this._prepare_grid = function (nodes) {
             /**
              * _prepare_grid is being called from the model event which is triggered on data changes.
              * So every time the data changes, rebuild the grid.
@@ -473,7 +495,9 @@ var debug = false;
                         else if (element.data[valueFrom] !== undefined) cellValue = element.data[valueFrom];
                         else cellValue = "&nbsp;";
                     }
-                    
+                    // assert the cell order:
+                    // cellValue = element.id;
+
                     // put images instead of text if needed
                     if (col.images !== undefined && col.images !== null && cellValue != "&nbsp;") {
                         img = col.images[cellValue] || col.images["default"];
@@ -486,10 +510,10 @@ var debug = false;
                     }
 
                     // get the valueClass
-                    valClass = col.valueClass && element.data[col.valueClass] || "";
-                    wideValClass = col.wideValueClass && element.data[col.wideValueClass] || "";
+                    valClass = col.valueClass && element.data && element.data[col.valueClass] || "";
+                    wideValClass = col.wideValueClass && element.data && element.data[col.wideValueClass] || "";
                     // get the title
-                    title = col.title && element.data[col.valueClass] || "";
+                    title = col.title && element.data && element.data[col.valueClass] || "";
                     // strip out HTML
                     title = title.replace(htmlstripre, '');
 
@@ -512,6 +536,7 @@ var debug = false;
                         .hide()
                         .appendTo( dataRow.children("td:eq(" + idx + ")"));
                 }
+
             }
 		};
 	};
