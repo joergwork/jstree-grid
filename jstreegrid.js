@@ -473,8 +473,7 @@ var debug = false;
                         else if (element.data[valueFrom] !== undefined) cellValue = element.data[valueFrom];
                         else cellValue = "&nbsp;";
                     }
-                    cellValue = element.id;
-
+                    
                     // put images instead of text if needed
                     if (col.images !== undefined && col.images !== null && cellValue != "&nbsp;") {
                         img = col.images[cellValue] || col.images["default"];
